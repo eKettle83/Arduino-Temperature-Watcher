@@ -1,6 +1,7 @@
 #include "eKettleTone.h"
+#include "Arduino.h"
 
-void eKettleTone::eKettleTone(int iPin)
+eKettleTone::eKettleTone(int iPin)
 {
 	_iPin = iPin;
 }
@@ -22,6 +23,10 @@ void eKettleTone::SimpleToneProgression(int iSteps, bool bUp, unsigned int iDura
 
 	for(int i = 0; i < iSteps; i++){
 		//	Iterate steps
+
+
+  Serial.begin(9600);
+  Serial.println("Alarm!");
 
 		//	Simple 1 ms Tone difference between steps
 		if (bUp){

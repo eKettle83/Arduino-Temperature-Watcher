@@ -2,18 +2,18 @@
 #define eKettleTone_h
 
 //	Notes
-#define A4	440.00
-#define B4	493.88	
-#define C5	523.25	
-#define D5	587.33	
-#define E5	659.25	
-#define F5	698.46	
-#define G5	783.99
+#define NA4 440.00f
+#define NB4 493.88f	
+#define NC5	523.25f	
+#define ND5	587.33f	
+#define NE5	659.25f	
+#define NF5	698.46f	
+#define NG5	783.99f
 
-class eKettleTone : public Print {
+class eKettleTone{
 public:
 
-	void eKettleTone(int iPin);
+	eKettleTone(int iPin);
 
 	void AlarmUp();
 	void AlarmDown();

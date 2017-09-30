@@ -1,11 +1,13 @@
 #include <LiquidCrystal.h>
 #include <OneWire.h>
+//#include "LCDShield.h"
+#include "eKettleTone.h"
 
 //  Celsius
 #define bCelsius  1
 
 //  Temperature Set
-float fTempSet = 25;  //  Deg Celcius
+float fTempSet = 30;  //  Deg Celcius
 //  Temperature Range
 float fTempRange = 2;  //  Deg Celcius
 
@@ -31,6 +33,8 @@ int iModeWatchTemp = ModeWatchForTempMax;
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 OneWire  ds(11);  // on pin 10 (a 4.7K resistor is necessary)
+//LCDShield KeypadShield;
+eKettleTone Tone(13);
 
 void setup() {
 
@@ -44,14 +48,16 @@ void setup() {
 
   lcd.clear();
 
+  //KeypadShield.read_LCD_buttons();
+
 }
 
 void loop() {
 
-  float fT; 
+  float fT;
 
-  while (GetNextTemp(&fT)){
-    
+  while (GetNextTemp(&fT)) {
+
 
     //Serial.print("T = ");
     Serial.println(fT);
@@ -64,21 +70,22 @@ void loop() {
     String sStatus = "";
     if (GetWatchTempStatus(fT, &sStatus))
     {
+      Tone.AlarmUp();
       lcd.print("! " + sStatus);
     }
     else
     {
 
       lcd.print("Set:");
-      lcd.print(String(fTempSet,0)); 
+      lcd.print(String(fTempSet, 0));
       lcd.print("+-");
-      lcd.print(String(fTempRange,0));
+      lcd.print(String(fTempRange, 0));
     }
 
     String sTemperature = "T:";
     sTemperature += String(fT, 3);
     sTemperature += "C";
-    
+
     //  Line 2
     lcd.setCursor(0, 1);
     lcd.print(sTemperature);
@@ -93,7 +100,7 @@ bool GetWatchTempStatus(float fT, String *sStatus)
   float fHighRange = fTempSet + fTempRange;
 
   bool bTisInRange = false;
-  if ((fLowRange < fT) && (fT < fHighRange)) 
+  if ((fLowRange < fT) && (fT < fHighRange))
   {
     //  fT Is In Range
     bTisInRange = true;
@@ -105,15 +112,15 @@ bool GetWatchTempStatus(float fT, String *sStatus)
     *sStatus = "Temp Out of Range";
   }
 
-  switch(iModeWatchTemp){
+  switch (iModeWatchTemp) {
     case 0: // In
-      return bTisInRange; 
+      return bTisInRange;
       break;
     case 1: //Out
-      return !bTisInRange; 
+      return !bTisInRange;
       break;
   }
-  
+
 }
 
 bool GetNextTemp(float *fT)
@@ -128,7 +135,7 @@ bool GetNextTemp(float *fT)
   byte data[12];
   byte addr[8];
   float celsius, fahrenheit;
-  
+
   if ( !ds.search(addr)) {
     //Serial.println("No more addresses");
     //Serial.println();
@@ -136,21 +143,21 @@ bool GetNextTemp(float *fT)
     delay(250);
     return false;
   }
-  
+
   /*
-  Serial.print("ROM =");
-  for( i = 0; i < 8; i++) {
+    Serial.print("ROM =");
+    for( i = 0; i < 8; i++) {
     //Serial.write(' ');
     Serial.print(addr[i], HEX);
-  }
+    }
   */
 
   if (OneWire::crc8(addr, 7) != addr[7]) {
-      //Serial.println("CRC is not valid!");
-      return false;
+    //Serial.println("CRC is not valid!");
+    return false;
   }
   //Serial.println();
- 
+
   // the first ROM byte indicates which chip
   switch (addr[0]) {
     case 0x10:
@@ -168,23 +175,23 @@ bool GetNextTemp(float *fT)
     default:
       //Serial.println("Device is not a DS18x20 family device.");
       return false;
-  } 
+  }
 
   ds.reset();
   ds.select(addr);
   ds.write(0x44, 1);        // start conversion, with parasite power on at the end
-  
+
   delay(1000);     // maybe 750ms is enough, maybe not
   // we might do a ds.depower() here, but the reset will take care of it.
-  
+
   present = ds.reset();
-  ds.select(addr);    
+  ds.select(addr);
   ds.write(0xBE);         // Read Scratchpad
 
   /*
-  Serial.print("  Data = ");
-  Serial.print(present, HEX);
-  Serial.print(" ");
+    Serial.print("  Data = ");
+    Serial.print(present, HEX);
+    Serial.print(" ");
   */
 
   for ( i = 0; i < 9; i++) {           // we need 9 bytes
@@ -250,7 +257,7 @@ void ShowTemp()
   byte data[12];
   byte addr[8];
   float celsius, fahrenheit;
-  
+
   if ( !ds.search(addr)) {
     Serial.println("No more addresses");
     Serial.println();
@@ -258,21 +265,21 @@ void ShowTemp()
     delay(250);
     return;
   }
-  
+
   /*
-  Serial.print("ROM =");
-  for( i = 0; i < 8; i++) {
+    Serial.print("ROM =");
+    for( i = 0; i < 8; i++) {
     //Serial.write(' ');
     Serial.print(addr[i], HEX);
-  }
+    }
   */
 
   if (OneWire::crc8(addr, 7) != addr[7]) {
-      Serial.println("CRC is not valid!");
-      return;
+    Serial.println("CRC is not valid!");
+    return;
   }
   //Serial.println();
- 
+
   // the first ROM byte indicates which chip
   switch (addr[0]) {
     case 0x10:
@@ -290,23 +297,23 @@ void ShowTemp()
     default:
       //Serial.println("Device is not a DS18x20 family device.");
       return;
-  } 
+  }
 
   ds.reset();
   ds.select(addr);
   ds.write(0x44, 1);        // start conversion, with parasite power on at the end
-  
+
   delay(1000);     // maybe 750ms is enough, maybe not
   // we might do a ds.depower() here, but the reset will take care of it.
-  
+
   present = ds.reset();
-  ds.select(addr);    
+  ds.select(addr);
   ds.write(0xBE);         // Read Scratchpad
 
   /*
-  Serial.print("  Data = ");
-  Serial.print(present, HEX);
-  Serial.print(" ");
+    Serial.print("  Data = ");
+    Serial.print(present, HEX);
+    Serial.print(" ");
   */
 
   for ( i = 0; i < 9; i++) {           // we need 9 bytes
@@ -355,3 +362,5 @@ void ShowTemp()
   }
 
 }
+
+
