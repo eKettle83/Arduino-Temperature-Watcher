@@ -1,13 +1,13 @@
 #include <LiquidCrystal.h>
 #include <OneWire.h>
-//#include "LCDShield.h"
+#include "LCDShield.h"
 #include "eKettleTone.h"
 
 //  Celsius
 #define bCelsius  1
 
 //  Temperature Set
-float fTempSet = 30;  //  Deg Celcius
+float fTempSet = 27;  //  Deg Celcius
 //  Temperature Range
 float fTempRange = 2;  //  Deg Celcius
 
@@ -23,7 +23,7 @@ int iModeMultiSensor = ModeSensorOne;
 #define  ModeWatchForTempMin      2
 #define  ModeWatchForTempMax      3
 
-int iModeWatchTemp = ModeWatchForTempMax;
+int iModeWatchTemp = ModeWatchForTempMin;
 
 //  Mode Edition
 #define  ModeEditionNone      0
@@ -33,7 +33,6 @@ int iModeWatchTemp = ModeWatchForTempMax;
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 OneWire  ds(11);  // on pin 10 (a 4.7K resistor is necessary)
-//LCDShield KeypadShield;
 eKettleTone Tone(13);
 
 void setup() {
@@ -48,7 +47,8 @@ void setup() {
 
   lcd.clear();
 
-  //KeypadShield.read_LCD_buttons();
+  Serial.println ("Key");
+  Serial.println (read_LCD_buttons());
 
 }
 
@@ -93,9 +93,16 @@ void loop() {
   }
 }
 
-bool GetWatchTempStatus(float fT, String *sStatus)
+int GetWatchTempStatus(float fT, String *sStatus)
 {
 
+  /*
+  ModeWatchForTempInRange  0
+  ModeWatchForTempOutRange 1
+  ModeWatchForTempMin      2
+  ModeWatchForTempMax      3
+  */
+  
   float fLowRange = fTempSet - fTempRange;
   float fHighRange = fTempSet + fTempRange;
 
@@ -104,20 +111,26 @@ bool GetWatchTempStatus(float fT, String *sStatus)
   {
     //  fT Is In Range
     bTisInRange = true;
-    *sStatus = "Temp In Range";
-  }
-  else
-  {
+  }else{
     bTisInRange = false;
-    *sStatus = "Temp Out of Range";
   }
 
   switch (iModeWatchTemp) {
-    case 0: // In
+    case 0: //  In
+      *sStatus = "Temp In Range";
       return bTisInRange;
       break;
-    case 1: //Out
+    case 1: //  Out
+       *sStatus = "Temp Out of Range";
       return !bTisInRange;
+      break;
+    case 2: //  Min
+      *sStatus = "Temp is Too Low";
+      return fT < fTempSet;
+      break;
+    case 3: //  Max
+      *sStatus = "Temp is Too High";
+      return fT > fTempSet;
       break;
   }
 
